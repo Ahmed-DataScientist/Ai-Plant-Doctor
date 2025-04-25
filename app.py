@@ -7,6 +7,7 @@ from PIL import Image
 with open("disease_info.json", "r") as f:
     disease_info = json.load(f)
 
+
 # Load YOLO model
 model = YOLO("model.pt")  # Replace with the actual path to your trained YOLO model
 
