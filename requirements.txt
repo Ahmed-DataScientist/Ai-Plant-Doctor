@@ -3,3 +3,4 @@ ultralytics
 torch
 numpy
 pillow
+opencv-python-headless
