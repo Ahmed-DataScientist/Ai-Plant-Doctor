@@ -4,7 +4,7 @@ import json
 from PIL import Image
 
 # Load disease info JSON file
-with open("C:/Users/Hp/OneDrive/Desktop/fyp navtac/disease_info.json", "r") as f:
+with open("disease_info.json", "r") as f:
     disease_info = json.load(f)
 
 # Load YOLO model
