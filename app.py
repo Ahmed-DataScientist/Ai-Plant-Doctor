@@ -7,39 +7,44 @@ from PIL import Image
 with open("disease_info.json", "r") as f:
     disease_info = json.load(f)
 
-
 # Load YOLO model
-model = YOLO("model.pt")  # Replace with the actual path to your trained YOLO model
+model = YOLO("model.pt")  # Load your trained model
 
-# Streamlit app
-st.title("AI Plant Doctor")
-st.header("Diseases and Treatments")
+# Manually define class names (because model.names sometimes missing on cloud)
+class_names = ['Leaf Spot', 'Powdery Mildew', 'Rust', 'Blight', 'Healthy']
+
+# Streamlit UI
+st.set_page_config(page_title="AI Plant Doctor", page_icon="🌿", layout="centered")
+st.title("🌱 AI Plant Doctor")
+st.caption("Upload a leaf image to detect disease, symptoms, and treatments!")
 
 # Upload image
-uploaded_image = st.file_uploader("Upload an image of a leaf", type=["jpg", "jpeg", "png"])
+uploaded_image = st.file_uploader("📤 Upload a leaf image", type=["jpg", "jpeg", "png"])
 
 if uploaded_image:
     image = Image.open(uploaded_image)
-    st.image(image, caption="Uploaded Leaf", use_container_width=True)
+    st.image(image, caption="🖼️ Uploaded Leaf", use_container_width=True)
 
-    # Run inference on the uploaded image
-    results = model(image)
+    # Run inference
+    results = model.predict(image)
+    boxes = results[0].boxes
 
-    # Get the predicted class name
-    class_id = int(results[0].boxes.cls[0].item())  # Assuming one object per image
-    class_name = model.names[class_id]  # Get the class name based on the model's prediction
+    if boxes:
+        class_id = int(boxes.cls[0].item())
+        class_name = class_names[class_id]
 
-    st.success(f"🧪 **Prediction:** {class_name}")
+        st.success(f"🔍 **Prediction:** {class_name}")
 
-    # Normalize the class name to match the keys in the disease_info dictionary
-    normalized_class = class_name.strip().title()  # Normalize class name to match JSON keys
+        # Show info
+        if class_name in disease_info:
+            info = disease_info[class_name]
+            st.markdown("---")
+            st.markdown("### 🩺 Symptoms")
+            st.info(f"**{info['symptoms']}**")
 
-    # Show symptoms and treatment if the class name matches
-    if normalized_class in disease_info:
-        info = disease_info[normalized_class]
-        st.markdown("### 🩺 Symptoms")
-        st.write(info["symptoms"])
-        st.markdown("### 💊 Treatment")
-        st.write(info["treatment"])
+            st.markdown("### 💊 Treatment")
+            st.success(f"**{info['treatment']}**")
+        else:
+            st.warning("❗ No detailed information found for this disease.")
     else:
-        st.warning("No additional information found for this disease.")
+        st.error("❌ No disease detected in the image.")
